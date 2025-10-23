@@ -80,6 +80,13 @@ select{
 }
 
 .box-row{ display:flex; gap:12px; }
+
+.box-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
 .box {
   background:var(--card);
   border-radius:12px;
@@ -88,56 +95,57 @@ select{
   border: 1px solid rgba(15,23,42,0.03);
 }
 
-.input-box{
-  width:50%;
-  min-height:300px;
-  resize:vertical;
-  overflow:auto;
-  font-size:15px;
-  line-height:1.5;
-  padding:14px;
-}
-
-.output-box-wrapper{
-  width:50%;
-  min-height:300px;
-  display:flex;
-  flex-direction:column;
-  padding:0;
-}
-
-.output-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:12px 14px;
-  border-bottom:1px dashed rgba(15,23,42,0.04);
+.box-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
   font-weight:600;
   color:var(--muted);
   font-size:13px;
+  border-bottom:1px dashed rgba(15,23,42,0.04);
   background: linear-gradient(90deg, rgba(255,255,255,0.6), rgba(255,255,255,0.45));
   border-top-left-radius:12px;
   border-top-right-radius:12px;
 }
 
-.output-box{
-  padding:14px;
-  min-height:230px;
-  max-height:540px;
-  overflow:auto;
-  outline:none;
-  font-size:15px;
-  line-height:1.5;
-  white-space:pre-wrap;
-}
-
-.icon-btn{
+.box-actions .icon-btn {
   background:transparent;
   border:none;
   cursor:pointer;
   padding:6px 10px;
   border-radius:8px;
   font-weight:600;
+  color:var(--muted);
+}
+.box-actions .icon-btn:hover {
+  color: #000;
+}
+
+.input-box-wrapper, .output-box-wrapper {
+  display: flex;
+  flex-direction: column;
+  width:50%;
+}
+
+.input-box, .output-box {
+  width: 100%;
+  min-height: 300px;
+  resize: vertical;
+  overflow:auto;
+  font-size:15px;
+  line-height:1.5;
+  padding:14px;
+  border-radius:12px;
+  border:1px solid rgba(15,23,42,0.03);
+  box-shadow:var(--shadow);
+  background:var(--card);
+}
+
+.output-box-wrapper .output-box {
+  max-height:540px;
+  outline:none;
+  white-space:pre-wrap;
 }
 
 .hint{ display:block; color:var(--muted); margin-top:10px; font-size:13px; }
@@ -148,6 +156,6 @@ select{
 @media (max-width:900px){
   .main-grid{ grid-template-columns: 1fr; }
   .box-row{ flex-direction:column; }
-  .input-box, .output-box-wrapper { width:100%;}
+  .input-box-wrapper, .output-box-wrapper { width:100%;}
   .controls{ order:2; }
 }
