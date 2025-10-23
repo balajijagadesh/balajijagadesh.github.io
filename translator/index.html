@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>WikiLink Translator</title>
   <link rel="stylesheet" href="style.css">
-  <!-- Google Font for clean readable typography -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -17,6 +16,7 @@
   </header>
 
   <main class="container main-grid">
+    <!-- Controls -->
     <section class="controls">
       <div class="lang-row">
         <label>From</label>
@@ -29,7 +29,7 @@
 
       <div class="options">
         <button id="convertBtn" class="btn">Convert</button>
-        <button id="clearBtn" class="btn ghost">Clear</button>
+        <button id="clearBtn" class="btn ghost">Clear All</button>
       </div>
 
       <div class="progress-wrap" aria-hidden="true">
@@ -42,39 +42,41 @@
       <p class="notes">Notes: Use <code>[[Article]]</code> in input. If you write <code>[[A|B]]</code>, the part after <code>|</code> is ignored. Plain occurrences of the source title are also replaced.</p>
     </section>
 
-<section class="translate-area">
-  <div class="box-row">
+    <!-- Translate Area -->
+    <section class="translate-area">
+      <div class="box-row">
+        <!-- Input Box -->
+        <div class="input-box-wrapper box-wrapper">
+          <div class="box-header">
+            <div>Input</div>
+            <div class="box-actions">
+              <button id="clearInputBtn" class="icon-btn">Clear</button>
+            </div>
+          </div>
+          <textarea id="inputBox" class="box input-box" placeholder="Type or paste text here..."></textarea>
+        </div>
 
-    <!-- Input box wrapper -->
-    <div class="box input-box-wrapper">
-      <div class="box-header">
-        <div>Input</div>
-        <div class="box-actions">
-          <button id="clearInputBtn" class="icon-btn">Clear</button>
+        <!-- Output Box -->
+        <div class="output-box-wrapper box-wrapper">
+          <div class="box-header">
+            <div>Output</div>
+            <div class="box-actions">
+              <button id="copyBtn" class="icon-btn">Copy</button>
+            </div>
+          </div>
+          <div id="outputBox" class="box output-box" contenteditable="true" spellcheck="true"></div>
         </div>
       </div>
-      <textarea id="inputBox" class="box input-box" placeholder="Type or paste text here..."></textarea>
-    </div>
 
-    <!-- Output box wrapper -->
-    <div class="box output-box-wrapper">
-      <div class="box-header">
-        <div>Output</div>
-        <div class="box-actions">
-          <button id="copyBtn" class="icon-btn">Copy</button>
-        </div>
-      </div>
-      <div id="outputBox" class="box output-box" contenteditable="true" spellcheck="true"></div>
-    </div>
-
-  </div>
-
-  <small class="hint">Tip: Click inside the output box to edit (if required) before copying.</small>
-</section>
-</main>
+      <small class="hint">Tip: Click inside the output box to edit (if required) before copying.</small>
+    </section>
+  </main>
 
   <footer class="container footer">
-    <small>With &#10084; from Balaji.</small>
+    <small>
+  With <span style="color:red; font-size:1.2em;">❤️</span> from 
+  <a href="https://meta.wikimedia.org/wiki/User:Balajijagadesh" target="_blank">Balaji</a>.
+</small>
   </footer>
 
   <script src="script.js"></script>
