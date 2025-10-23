@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>My Wiki Tools</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#fbfdff; --card:#ffffff; --muted:#6b7280; --accent:#c7e9f5;
+      font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      color:#0f172a;
+    }
+    *{box-sizing:border-box}
+    body{margin:0; min-height:100vh; background:linear-gradient(180deg,#f7fbff,#fbfdff); display:flex; flex-direction:column; align-items:center;}
+    header{width:100%; background:linear-gradient(90deg,#e9f7ff,#fff); box-shadow:0 6px 20px rgba(14,22,34,0.04);}
+    .wrap{max-width:1100px; width:100%; padding:28px;}
+    h1{margin:0; font-size:24px}
+    p.lead{color:var(--muted); margin-top:8px}
+    main{max-width:1100px; width:100%; padding:28px; display:grid; grid-template-columns: 1fr 360px; gap:22px; }
+    .card{background:var(--card); border-radius:14px; padding:18px; box-shadow: 0 8px 30px rgba(16,24,40,0.04); border:1px solid rgba(15,23,42,0.03)}
+    .hero{display:flex; flex-direction:column; gap:12px}
+    a.btn{display:inline-block; padding:10px 14px; background:linear-gradient(180deg,#bfeffd,#9ee6ff); border-radius:10px; text-decoration:none; color:#062635; font-weight:600;}
+    ul{margin:12px 0 0 18px; color:var(--muted)}
+    .meta{font-size:13px; color:var(--muted); margin-top:8px}
+    footer{margin:28px 0 60px; color:var(--muted); font-size:13px}
+    @media (max-width:900px){ main{grid-template-columns:1fr; padding:18px} }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>My Wiki Tools</h1>
+      <p class="lead">Small tools that help you create language-aware wiki text. Hosted on GitHub Pages.</p>
+    </div>
+  </header>
+
+  <main>
+    <section class="card hero">
+      <h2>WikiLink Translator</h2>
+      <p class="meta">Translate wiki links inside text (works with Wikidata sitelinks). Input and output boxes — editable output and copy button.</p>
+
+      <p>Open the translator:</p>
+      <a class="btn" href="/translator/" id="translatorLink">Open Translator</a>
+
+      <div style="margin-top:14px;">
+        <strong>How to use</strong>
+        <ul>
+          <li>Type text in the left box. Use <code>[[Article]]</code> to mark items to translate.</li>
+          <li>Select source and target languages from the dropdowns and click <strong>Convert</strong>.</li>
+          <li>Output is editable — then click the Copy button.</li>
+        </ul>
+      </div>
+    </section>
+
+    <aside class="card">
+      <h3>Quick links</h3>
+      <ul>
+        <li><a href="/translator/">Translator subpage</a></li>
+        <li><a href="https://github.com/">GitHub (for repo)</a></li>
+      </ul>
+      <div style="margin-top:14px; color:var(--muted); font-size:13px">
+        Tip: Put your translator files in <code>/translator/</code> (index.html, script.js, style.css).
+      </div>
+    </aside>
+  </main>
+
+  <footer>
+    <div class="wrap">Made by you — deploy on <strong>USERNAME.github.io</strong> by following the steps below.</div>
+  </footer>
+</body>
+</html>
