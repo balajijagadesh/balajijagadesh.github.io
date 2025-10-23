@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>WikiLink Translator</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Google Font for clean readable typography -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header class="topbar">
+    <div class="container">
+      <h1>WikiLink Translator</h1>
+      <p class="sub">Replace [[...]] wiki links across languages using Wikidata — lightweight Indian languages + English.</p>
+    </div>
+  </header>
+
+  <main class="container main-grid">
+    <section class="controls">
+      <div class="lang-row">
+        <label>From</label>
+        <select id="sourceLang"></select>
+      </div>
+      <div class="lang-row">
+        <label>To</label>
+        <select id="targetLang"></select>
+      </div>
+
+      <div class="options">
+        <button id="convertBtn" class="btn">Convert</button>
+        <button id="clearBtn" class="btn ghost">Clear</button>
+      </div>
+
+      <div class="progress-wrap" aria-hidden="true">
+        <div id="progress" class="progress">
+          <div id="progressBar" class="progress-bar" style="width:0%"></div>
+        </div>
+        <small id="progressText">Idle</small>
+      </div>
+
+      <p class="notes">Notes: Use <code>[[Article]]</code> in input. If you write <code>[[A|B]]</code>, the part after <code>|</code> is ignored. Plain occurrences of the source title are also replaced.</p>
+    </section>
+
+    <section class="translate-area">
+      <div class="box-row">
+        <textarea id="inputBox" class="box input-box" placeholder="Type or paste text here..."></textarea>
+
+        <div class="box output-box-wrapper">
+          <div class="output-header">
+            <div>Output (editable)</div>
+            <div class="output-actions">
+              <button id="copyBtn" class="icon-btn">Copy</button>
+            </div>
+          </div>
+          <div id="outputBox" class="box output-box" contenteditable="true" spellcheck="true"></div>
+        </div>
+      </div>
+
+      <small class="hint">Tip: Click inside the output box to edit before copying. Large contents scroll inside the boxes.</small>
+    </section>
+  </main>
+
+  <footer class="container footer">
+    <small>Make sure CORS is allowed (this app uses Wikipedia &amp; Wikidata public APIs). Hosted easily on GitHub Pages.</small>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
