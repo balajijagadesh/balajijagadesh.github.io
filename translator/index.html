@@ -42,27 +42,39 @@
       <p class="notes">Notes: Use <code>[[Article]]</code> in input. If you write <code>[[A|B]]</code>, the part after <code>|</code> is ignored. Plain occurrences of the source title are also replaced.</p>
     </section>
 
-    <section class="translate-area">
-      <div class="box-row">
-        <textarea id="inputBox" class="box input-box" placeholder="Type or paste text here..."></textarea>
+<section class="translate-area">
+  <div class="box-row">
 
-        <div class="box output-box-wrapper">
-          <div class="output-header">
-            <div>Output</div>
-            <div class="output-actions">
-              <button id="copyBtn" class="icon-btn">Copy</button>
-            </div>
-          </div>
-          <div id="outputBox" class="box output-box" contenteditable="true" spellcheck="true"></div>
+    <!-- Input box wrapper -->
+    <div class="box input-box-wrapper">
+      <div class="box-header">
+        <div>Input</div>
+        <div class="box-actions">
+          <button id="clearInputBtn" class="icon-btn">Clear</button>
         </div>
       </div>
+      <textarea id="inputBox" class="box input-box" placeholder="Type or paste text here..."></textarea>
+    </div>
 
-      <small class="hint">Tip: Click inside the output box to edit (if required) before copying.</small>
-    </section>
-  </main>
+    <!-- Output box wrapper -->
+    <div class="box output-box-wrapper">
+      <div class="box-header">
+        <div>Output</div>
+        <div class="box-actions">
+          <button id="copyBtn" class="icon-btn">Copy</button>
+        </div>
+      </div>
+      <div id="outputBox" class="box output-box" contenteditable="true" spellcheck="true"></div>
+    </div>
+
+  </div>
+
+  <small class="hint">Tip: Click inside the output box to edit (if required) before copying.</small>
+</section>
+</main>
 
   <footer class="container footer">
-    <small>With <3 from Balaji.</small>
+    <small>With &#10084; from Balaji.</small>
   </footer>
 
   <script src="script.js"></script>
