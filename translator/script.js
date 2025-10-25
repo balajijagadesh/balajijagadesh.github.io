@@ -102,7 +102,13 @@ async function convertText() {
       }
 
       const bracketed = hasParentheses(targetTitle) ? `[[${targetTitle}|]]` : `[[${targetTitle}]]`;
-      mapping.set(key,{...entry,targetTitleRaw:targetTitle,bracketReplacement:bracketed,plainReplacement:stripParentheses(targetTitle)});
+      mapping.set(key,{
+        ...entry,
+        targetTitleRaw:targetTitle,
+        bracketReplacement:bracketed,
+        plainReplacement:stripParentheses(targetTitle)
+      });
+
     } catch(e){
       mapping.set(key,{...entry,targetTitleRaw:null,bracketReplacement:`[[${entry.sourceTitle}]]`,plainReplacement:entry.sourceTitle});
       console.error("Error resolving", key, e);
@@ -117,13 +123,19 @@ async function convertText() {
     return mapping.get(innerTrim)?.bracketReplacement || full;
   });
 
+  // 🔧 FIX: Also replace case-insensitive matches and ignore parentheses in plain text
   for(const [src, info] of mapping.entries()){
     if(!info.plainReplacement) continue;
+
     const esc = escapeRegExp(src);
+    const baseWithoutParens = stripParentheses(src);
+    const escBase = escapeRegExp(baseWithoutParens);
+
     try{
       const lookbehindSupported=(()=>{try{new RegExp('(?<!a)b'); return true}catch(e){return false}})();
       if(lookbehindSupported){
-        const wordRegex = new RegExp(`(?<!\\[\\[)\\b${esc}\\b(?!\\|)`, 'g');
+        // Match both with and without parentheses, case-insensitive
+        const wordRegex = new RegExp(`(?<!\\[\\[)\\b(${esc}|${escBase})\\b(?!\\|)`, 'gi');
         output = output.replace(wordRegex, info.plainReplacement);
       }else{
         const parts=[]; let lastIndex=0; let m;
@@ -135,14 +147,16 @@ async function convertText() {
         }
         parts.push({text:output.substring(lastIndex),bracket:false});
         for(let i=0;i<parts.length;i++){
-          if(!parts[i].bracket) parts[i].text = parts[i].text.replace(new RegExp(`\\b${esc}\\b`,'g'),info.plainReplacement);
+          if(!parts[i].bracket)
+            parts[i].text = parts[i].text.replace(new RegExp(`\\b(${esc}|${escBase})\\b`,'gi'),info.plainReplacement);
         }
         output=parts.map(p=>p.text).join('');
       }
     }catch(err){ console.warn("Replace issue",src,err);}
   }
 
-  setProgress(100,"Done"); setTimeout(()=>setProgress(0,"Idle"),600);
+  setProgress(100,"Done");
+  setTimeout(()=>setProgress(0,"Idle"),600);
   $("outputBox").textContent = output;
 }
 
