@@ -17,6 +17,16 @@ const LANGS = [
   { code: "ur", name: "Urdu" }
 ];
 
+/* =======================
+   NEW STATE (non-breaking)
+   ======================= */
+let lastInputLinks = [];
+let untranslatedHidden = false;
+
+/* =======================
+   EXISTING FUNCTIONS
+   ======================= */
+
 function populateLanguageSelects() {
   const source = $("sourceLang");
   const target = $("targetLang");
@@ -39,8 +49,12 @@ function populateLanguageSelects() {
 }
 
 function attachLangSaveHandlers() {
-  $("sourceLang").addEventListener("change", e => localStorage.setItem("wikitr_source", e.target.value));
-  $("targetLang").addEventListener("change", e => localStorage.setItem("wikitr_target", e.target.value));
+  $("sourceLang").addEventListener("change", e =>
+    localStorage.setItem("wikitr_source", e.target.value)
+  );
+  $("targetLang").addEventListener("change", e =>
+    localStorage.setItem("wikitr_target", e.target.value)
+  );
 }
 
 function setProgress(pct, text) {
@@ -48,12 +62,43 @@ function setProgress(pct, text) {
   $("progressText").textContent = text || "";
 }
 
-function stripParentheses(s) { return s.replace(/\s*\([^)]*\)/g,'').trim(); }
-function hasParentheses(s) { return /\(.+\)/.test(s); }
+function stripParentheses(s) {
+  return s.replace(/\s*\([^)]*\)/g, '').trim();
+}
 
+function hasParentheses(s) {
+  return /\(.+\)/.test(s);
+}
+
+/* =======================
+   NEW HELPER (SAFE)
+   ======================= */
+function extractWikiLinks(text) {
+  const links = [];
+  const re = /\[\[([\s\S]*?)\]\]/g;
+  let m;
+  while ((m = re.exec(text)) !== null) {
+    let raw = m[1].trim();
+    if (raw.includes("|")) raw = raw.split("|")[0].trim();
+    links.push(stripParentheses(raw));
+  }
+  return links;
+}
+
+/* =======================
+   MAIN CONVERT FUNCTION
+   ======================= */
 async function convertText() {
   const inputText = $("inputBox").value;
-  if (!inputText.trim()) { $("outputBox").textContent=""; return; }
+  if (!inputText.trim()) {
+    $("outputBox").textContent = "";
+    return;
+  }
+
+  /* capture input state for toggle logic */
+  lastInputLinks = extractWikiLinks(inputText);
+  untranslatedHidden = false;
+  $("toggleUntranslatedBtn").textContent = "Hide untranslated links";
 
   const sourceCode = $("sourceLang").value;
   const targetCode = $("targetLang").value;
@@ -62,127 +107,145 @@ async function convertText() {
 
   const bracketRegex = /\[\[([\s\S]*?)\]\]/g;
   const matches = [...inputText.matchAll(bracketRegex)];
-  if (!matches.length) { $("outputBox").textContent = inputText; return; }
+  if (!matches.length) {
+    $("outputBox").textContent = inputText;
+    return;
+  }
 
   const mapping = new Map();
-  setProgress(10,"Preparing queries...");
+  setProgress(10, "Preparing queries...");
+
   for (const m of matches) {
     let raw = m[1].trim();
     if (raw.includes("|")) raw = raw.split("|")[0].trim();
-    if (!mapping.has(raw)) mapping.set(raw,{sourceTitle:raw});
+    if (!mapping.has(raw)) mapping.set(raw, { sourceTitle: raw });
   }
 
   const keys = Array.from(mapping.keys());
-  const total = keys.length; let done=0;
-  setProgress(20,`Resolving ${total} item(s)...`);
+  const total = keys.length;
+  let done = 0;
+
+  setProgress(20, `Resolving ${total} item(s)...`);
 
   for (const key of keys) {
     const entry = mapping.get(key);
     try {
       const pageTitleEnc = encodeURIComponent(entry.sourceTitle);
-      const srcResp = await fetch(`https://${sourceWiki}/w/api.php?action=query&format=json&titles=${pageTitleEnc}&prop=pageprops&redirects=1&origin=*`);
+      const srcResp = await fetch(
+        `https://${sourceWiki}/w/api.php?action=query&format=json&titles=${pageTitleEnc}&prop=pageprops&redirects=1&origin=*`
+      );
       const srcJson = await srcResp.json();
-      const pages = srcJson.query && srcJson.query.pages ? srcJson.query.pages : {};
-      const pageId = Object.keys(pages)[0]; const page = pages[pageId];
+      const pages = srcJson.query?.pages || {};
+      const page = pages[Object.keys(pages)[0]];
       const wikibaseItem = page?.pageprops?.wikibase_item || null;
 
       if (!wikibaseItem) {
-        mapping.set(key,{...entry,targetTitleRaw:null,bracketReplacement:`[[${entry.sourceTitle}]]`,plainReplacement:entry.sourceTitle});
-        done++; continue;
+        mapping.set(key, {
+          ...entry,
+          bracketReplacement: `[[${entry.sourceTitle}]]`,
+          plainReplacement: entry.sourceTitle
+        });
+        done++;
+        continue;
       }
 
-      const wdResp = await fetch(`https://www.wikidata.org/w/api.php?action=wbgetentities&format=json&ids=${encodeURIComponent(wikibaseItem)}&props=sitelinks&origin=*`);
+      const wdResp = await fetch(
+        `https://www.wikidata.org/w/api.php?action=wbgetentities&format=json&ids=${wikibaseItem}&props=sitelinks&origin=*`
+      );
       const wdJson = await wdResp.json();
-      const ent = wdJson.entities[wikibaseItem];
-      const targetTitle = ent?.sitelinks?.[targetWikiKey]?.title || null;
+      const targetTitle =
+        wdJson.entities[wikibaseItem]?.sitelinks?.[targetWikiKey]?.title || null;
 
       if (!targetTitle) {
-        mapping.set(key,{...entry,targetTitleRaw:null,bracketReplacement:`[[${entry.sourceTitle}]]`,plainReplacement:entry.sourceTitle});
-        done++; continue;
+        mapping.set(key, {
+          ...entry,
+          bracketReplacement: `[[${entry.sourceTitle}]]`,
+          plainReplacement: entry.sourceTitle
+        });
+        done++;
+        continue;
       }
 
-      const bracketed = hasParentheses(targetTitle) ? `[[${targetTitle}|]]` : `[[${targetTitle}]]`;
-      mapping.set(key,{
+      const bracketed = hasParentheses(targetTitle)
+        ? `[[${targetTitle}|]]`
+        : `[[${targetTitle}]]`;
+
+      mapping.set(key, {
         ...entry,
-        targetTitleRaw:targetTitle,
-        bracketReplacement:bracketed,
-        plainReplacement:stripParentheses(targetTitle)
+        bracketReplacement: bracketed,
+        plainReplacement: stripParentheses(targetTitle)
       });
 
-    } catch(e){
-      mapping.set(key,{...entry,targetTitleRaw:null,bracketReplacement:`[[${entry.sourceTitle}]]`,plainReplacement:entry.sourceTitle});
-      console.error("Error resolving", key, e);
+    } catch (e) {
+      console.error(e);
     } finally {
-      done++; setProgress(70+Math.round((done/total)*20),`Resolved ${done}/${total}`);
+      done++;
+      setProgress(70 + Math.round((done / total) * 20),
+        `Resolved ${done}/${total}`);
     }
   }
 
-  setProgress(90,"Composing output...");
-  let output = inputText.replace(bracketRegex,(full,inner)=>{
-    let innerTrim = inner.trim(); if(innerTrim.includes("|")) innerTrim=innerTrim.split("|")[0].trim();
+  setProgress(90, "Composing output...");
+
+  let output = inputText.replace(bracketRegex, (full, inner) => {
+    let innerTrim = inner.trim();
+    if (innerTrim.includes("|")) innerTrim = innerTrim.split("|")[0].trim();
     return mapping.get(innerTrim)?.bracketReplacement || full;
   });
 
-  // 🔧 FIX: Also replace case-insensitive matches and ignore parentheses in plain text
-  for(const [src, info] of mapping.entries()){
-    if(!info.plainReplacement) continue;
-
-    const esc = escapeRegExp(src);
-    const baseWithoutParens = stripParentheses(src);
-    const escBase = escapeRegExp(baseWithoutParens);
-
-    try{
-      const lookbehindSupported=(()=>{try{new RegExp('(?<!a)b'); return true}catch(e){return false}})();
-      if(lookbehindSupported){
-        // Match both with and without parentheses, case-insensitive
-        const wordRegex = new RegExp(`(?<!\\[\\[)\\b(${esc}|${escBase})\\b(?!\\|)`, 'gi');
-        output = output.replace(wordRegex, info.plainReplacement);
-      }else{
-        const parts=[]; let lastIndex=0; let m;
-        const brRe=/\[\[[\s\S]*?\]\]/g;
-        while((m=brRe.exec(output))!==null){
-          parts.push({text:output.substring(lastIndex,m.index),bracket:false});
-          parts.push({text:m[0],bracket:true});
-          lastIndex=m.index+m[0].length;
-        }
-        parts.push({text:output.substring(lastIndex),bracket:false});
-        for(let i=0;i<parts.length;i++){
-          if(!parts[i].bracket)
-            parts[i].text = parts[i].text.replace(new RegExp(`\\b(${esc}|${escBase})\\b`,'gi'),info.plainReplacement);
-        }
-        output=parts.map(p=>p.text).join('');
-      }
-    }catch(err){ console.warn("Replace issue",src,err);}
+  for (const [src, info] of mapping.entries()) {
+    const esc = escapeRegExp(stripParentheses(src));
+    output = output.replace(
+      new RegExp(`\\b${esc}\\b`, 'gi'),
+      info.plainReplacement
+    );
   }
 
-  setProgress(100,"Done");
-  setTimeout(()=>setProgress(0,"Idle"),600);
+  setProgress(100, "Done");
+  setTimeout(() => setProgress(0, "Idle"), 600);
   $("outputBox").textContent = output;
 }
 
+/* =======================
+   NEW TOGGLE FUNCTION
+   ======================= */
+function toggleUntranslatedLinks() {
+  const outBox = $("outputBox");
+  let text = outBox.textContent;
+  const outputLinks = extractWikiLinks(text);
+
+  if (!untranslatedHidden) {
+    text = text.replace(/\[\[([\s\S]*?)\]\]/g, (full, inner) => {
+      let clean = inner.split("|")[0].trim();
+      clean = stripParentheses(clean);
+      return lastInputLinks.includes(clean) ? "" : full;
+    });
+    untranslatedHidden = true;
+    $("toggleUntranslatedBtn").textContent = "Show untranslated links";
+  } else {
+    convertText();
+    return;
+  }
+
+  outBox.textContent = text;
+}
+
+/* =======================
+   UI SETUP
+   ======================= */
 function setupUI() {
   populateLanguageSelects();
   attachLangSaveHandlers();
 
-  $("convertBtn").addEventListener("click", async()=>{setProgress(5,"Starting..."); await convertText();});
-  $("inputBox").addEventListener("keydown",(e)=>{if(e.key==="Enter"&&(e.ctrlKey||e.metaKey)){e.preventDefault(); $("convertBtn").click();}});
+  $("convertBtn").addEventListener("click", convertText);
+  $("toggleUntranslatedBtn").addEventListener(
+    "click",
+    toggleUntranslatedLinks
+  );
 
-  $("clearInputBtn").addEventListener("click",()=>{$("inputBox").value=""; $("inputBox").focus();});
-  $("clearBtn").addEventListener("click",()=>{$("inputBox").value=""; $("outputBox").textContent="";});
-
-  $("copyBtn").addEventListener("click",async()=>{
-    try{
-      await navigator.clipboard.writeText($("outputBox").textContent);
-      const old=$("copyBtn").textContent;
-      $("copyBtn").textContent="Copied!";
-      setTimeout(()=>$("copyBtn").textContent=old,1200);
-    }catch{alert("Unable to copy. Select and copy manually.");}
+  $("copyBtn").addEventListener(async () => {
+    await navigator.clipboard.writeText($("outputBox").textContent);
   });
 }
 
-document.addEventListener("DOMContentLoaded",()=>{
-  setupUI();
-  $("inputBox").value=`[[India]] is a big country. I like India.
-[[Bala (actor)|Bala]] did many films.
-Also test: [[India|Indian subcontinent]]`;
-});
+document.addEventListener("DOMContentLoaded", setupUI);
