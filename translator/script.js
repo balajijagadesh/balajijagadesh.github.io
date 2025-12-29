@@ -243,9 +243,24 @@ function setupUI() {
     toggleUntranslatedLinks
   );
 
-  $("copyBtn").addEventListener(async () => {
-    await navigator.clipboard.writeText($("outputBox").textContent);
-  });
+$("copyBtn").addEventListener("click", async () => {
+  try {
+    const text = $("outputBox").innerText; // respects contenteditable
+    if (!text.trim()) return;
+
+    await navigator.clipboard.writeText(text);
+
+    // visual feedback
+    const btn = $("copyBtn");
+    const old = btn.textContent;
+    btn.textContent = "Copied!";
+    setTimeout(() => btn.textContent = old, 1200);
+
+  } catch (err) {
+    console.error("Copy failed:", err);
+    alert("Copy failed. Please select the text and copy manually.");
+  }
+});
 }
 
 document.addEventListener("DOMContentLoaded", setupUI);
